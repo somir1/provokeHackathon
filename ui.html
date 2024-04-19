@@ -1,17 +1,37 @@
-<h2>Rectangle Creator</h2>
-<p>Count: <input id="count" value="5"></p>
-<button id="create">Create</button>
-<button id="cancel">Cancel</button>
-<script>
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Export as PNG</title>
+  </head>
+  <body>
+    <h3>Export Selected Object</h3>
+    <button id="export">Export as PNG</button>
+    <img
+      id="imageDisplay"
+      style="display: none; max-width: 100%; margin-top: 10px"
+    />
+    <script>
+      const exportButton = document.getElementById("export");
+      const imageDisplay = document.getElementById("imageDisplay");
 
-document.getElementById('create').onclick = () => {
-  const textbox = document.getElementById('count');
-  const count = parseInt(textbox.value, 10);
-  parent.postMessage({ pluginMessage: { type: 'create-rectangles', count } }, '*')
-}
+      exportButton.onclick = () => {
+        parent.postMessage({ pluginMessage: { type: "export-png" } }, "*");
+      };
 
-document.getElementById('cancel').onclick = () => {
-  parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*')
-}
-
-</script>
+      // Listen for messages from the plugin
+      onmessage = (event) => {
+        const msg = event.data.pluginMessage;
+        if (msg.type === "exported-png" && msg.bytes) {
+          // Convert the received byte array to base64
+          const binary = String.fromCharCode.apply(
+            null,
+            new Uint8Array(msg.bytes)
+          );
+          const base64 = btoa(binary);
+          imageDisplay.src = `data:image/png;base64,${base64}`;
+          imageDisplay.style.display = "block"; // Show the image
+        }
+      };
+    </script>
+  </body>
+</html>
