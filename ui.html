@@ -1,35 +1,100 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Export as PNG</title>
+    <title>AI Integration</title>
   </head>
   <body>
-    <h3>Export Selected Object</h3>
-    <button id="export">Export as PNG</button>
-    <img
-      id="imageDisplay"
-      style="display: none; max-width: 100%; margin-top: 10px"
-    />
-    <script>
-      const exportButton = document.getElementById("export");
-      const imageDisplay = document.getElementById("imageDisplay");
+    <h3>Customize and Preview Image</h3>
+    <p>
+      Tone:
+      <input
+        type="text"
+        id="tone"
+        placeholder="Enter tone here"
+        style="width: 90%"
+      />
+    </p>
+    <p>
+      Format:
+      <input
+        type="text"
+        id="format"
+        placeholder="Enter format here"
+        style="width: 90%"
+      />
+    </p>
 
-      exportButton.onclick = () => {
+    <button id="preview">Show Preview</button>
+    <div id="previewContainer" style="margin-top: 20px; display: none">
+      <img
+        id="imageDisplay"
+        style="max-width: 100%; display: block; margin-top: 10px"
+      />
+      <p>
+        Description:
+        <input
+          type="text"
+          id="description"
+          placeholder="Enter Description here"
+          style="width: 90%"
+        />
+      </p>
+    </div>
+    <button id="finalPayload">Generate US</button>
+    <div
+      id="finalPayloadPreview"
+      style="
+        margin-top: 20px;
+        display: none;
+        background-color: #f0f0f0;
+        padding: 10px;
+      "
+    >
+      <p><strong>Tone:</strong> <span id="displayTone"></span></p>
+      <p><strong>Format:</strong> <span id="displayFormat"></span></p>
+      <p><strong>Description:</strong> <span id="displayDescription"></span></p>
+      <img
+        id="finalImageDisplay"
+        style="max-width: 100%; display: block; margin-top: 10px"
+      />
+    </div>
+    <script>
+      const previewButton = document.getElementById("preview");
+      const finalPayloadButton = document.getElementById("finalPayload");
+      const imageDisplay = document.getElementById("imageDisplay");
+      const previewContainer = document.getElementById("previewContainer");
+      const finalPayloadPreview = document.getElementById(
+        "finalPayloadPreview"
+      );
+      const displayTone = document.getElementById("displayTone");
+      const displayFormat = document.getElementById("displayFormat");
+      const displayDescription = document.getElementById("displayDescription");
+      const toneInput = document.getElementById("tone");
+      const formatInput = document.getElementById("format");
+      const descriptionInput = document.getElementById("description");
+
+      previewButton.onclick = () => {
         parent.postMessage({ pluginMessage: { type: "export-png" } }, "*");
       };
 
-      // Listen for messages from the plugin
+      finalPayloadButton.onclick = () => {
+        displayTone.textContent = toneInput.value;
+        displayFormat.textContent = formatInput.value;
+        displayDescription.textContent = descriptionInput.value;
+        finalImageDisplay.src = imageDisplay.src; // Use the same src as the preview image
+        finalPayloadPreview.style.display = "block"; // Show the final payload preview
+      };
+
       onmessage = (event) => {
         const msg = event.data.pluginMessage;
         if (msg.type === "exported-png" && msg.bytes) {
-          // Convert the received byte array to base64
-          const binary = String.fromCharCode.apply(
-            null,
-            new Uint8Array(msg.bytes)
+          const binaryString = msg.bytes.reduce(
+            (data, byte) => data + String.fromCharCode(byte),
+            ""
           );
-          const base64 = btoa(binary);
+          const base64 = btoa(binaryString);
           imageDisplay.src = `data:image/png;base64,${base64}`;
-          imageDisplay.style.display = "block"; // Show the image
+          previewContainer.style.display = "block";
         }
       };
     </script>
