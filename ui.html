@@ -1,8 +1,63 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>AI Integration</title>
-  </head>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    body {
+      font-family: "Roboto", sans-serif;
+      background-color: #f4f4f4;
+      color: #333;
+      padding: 20px;
+      margin: 0;
+      height: 2000px;
+    }
+    h3 {
+      color: #2a2a2a;
+      font-weight: 500;
+    }
+    input,
+    button {
+      font-family: "Roboto", sans-serif;
+      padding: 12px 15px;
+      margin-top: 8px;
+      width: 100%;
+      box-sizing: border-box;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+      transition: all 0.3s ease;
+    }
+    input:focus {
+      border-color: #0056b3;
+      box-shadow: 0 0 8px rgba(0, 86, 179, 0.2);
+    }
+    button {
+      background-image: linear-gradient(45deg, #6ab04c, #26de81);
+      color: white;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    button:hover {
+      background-image: linear-gradient(45deg, #26de81, #6ab04c);
+      box-shadow: 0 2px 15px rgba(0, 0, 0, 0.15);
+    }
+    div {
+      margin-top: 10px;
+      padding: 15px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    #finalPayloadPreview {
+      background-color: #e8f8f5;
+      border-left: 5px solid #26de81;
+    }
+    p {
+      margin: 10px 0;
+    }
+  </style>
   <body>
     <h3>Customize and Preview Image</h3>
     <p>
@@ -81,20 +136,24 @@
         displayTone.textContent = toneInput.value;
         displayFormat.textContent = formatInput.value;
         displayDescription.textContent = descriptionInput.value;
-        finalImageDisplay.src = imageDisplay.src; // Use the same src as the preview image
-        finalPayloadPreview.style.display = "block"; // Show the final payload preview
+        finalImageDisplay.src = imageDisplay.src;
+        finalPayloadPreview.style.display = "block";
       };
 
       onmessage = (event) => {
         const msg = event.data.pluginMessage;
-        if (msg.type === "exported-png" && msg.bytes) {
+        if (msg.type === "exported-jpg" && msg.bytes) {
           const binaryString = msg.bytes.reduce(
             (data, byte) => data + String.fromCharCode(byte),
             ""
           );
           const base64 = btoa(binaryString);
-          imageDisplay.src = `data:image/png;base64,${base64}`;
-          previewContainer.style.display = "block";
+          const link = document.createElement("a");
+          link.href = `data:image/jpeg;base64,${base64}`;
+          link.download = "image.jpg";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
         }
       };
     </script>
