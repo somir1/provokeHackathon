@@ -142,18 +142,14 @@
 
       onmessage = (event) => {
         const msg = event.data.pluginMessage;
-        if (msg.type === "exported-jpg" && msg.bytes) {
+        if (msg.type === "exported-png" && msg.bytes) {
           const binaryString = msg.bytes.reduce(
             (data, byte) => data + String.fromCharCode(byte),
             ""
           );
           const base64 = btoa(binaryString);
-          const link = document.createElement("a");
-          link.href = `data:image/jpeg;base64,${base64}`;
-          link.download = "image.jpg";
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
+          imageDisplay.src = `data:image/png;base64,${base64}`;
+          previewContainer.style.display = "block";
         }
       };
     </script>
