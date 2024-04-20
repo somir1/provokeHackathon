@@ -3,20 +3,15 @@ import anthropic
 import base64
 from docx import Document
 import datetime
-import os
-from flask_cors import CORS, cross_origin
- 
 
 app = Flask(__name__)
 
-api_key = os.getenv("APIKEY")
 
 # Initialize Anthropics client with your API key
-client = anthropic.Anthropic(api_key=api_key)
+client = anthropic.Anthropic(api_key="")
 
 
 @app.route('/analyze_image', methods=['GET'])
-@cross_origin()
 def analyze_image():
     # Read image file and encode it as base64
     image_file = request.args.get('image')
