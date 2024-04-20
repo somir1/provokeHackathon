@@ -8,8 +8,10 @@ import os
 
 app = Flask(__name__)
 
-api_key = os.getenv("APIKEY")
 
+api_key = os.getenv("APIKEY")
+ 
+# Initialize Anthropics client with your API key
 client = anthropic.Anthropic(api_key=api_key)
 
 
