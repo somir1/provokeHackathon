@@ -3,6 +3,16 @@
     "target": "es6",
     "lib": ["es6"],
     "strict": true,
-    "typeRoots": ["./node_modules/@types", "./node_modules/@figma"]
-  }
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "typeRoots": ["./node_modules/@types", "./node_modules/@figma"],
+    "baseUrl": ".",
+    "paths": {
+      "*": ["node_modules/*", "src/types/*"]
+    }
+  },
+  "include": [
+    "**/*.ts" // This line now includes all TypeScript files in the project, regardless of directory
+  ],
+  "exclude": ["node_modules"]
 }

@@ -213,6 +213,7 @@
         id="finalImageDisplay"
         style="max-width: 100%; display: block; margin-top: 10px"
       />
+      <div id="apiResponse" style="margin-top: 20px"></div>
       <button id="saveUserStory">Save User Story</button>
     </div>
 
@@ -235,69 +236,58 @@
       const displayPoints = document.getElementById("displayPoints");
       const displayLogic = document.getElementById("displayLogic"); // Ensure this ID is set correctly in your HTML
       const saveUserStoryButton = document.getElementById("saveUserStory");
+      const apiResponseContainer = document.getElementById("apiResponse");
+      const toneInput = document.getElementById("tone");
+      const formatInput = document.getElementById("format");
+      const descriptionInput = document.getElementById("description");
 
       previewButton.onclick = () => {
         parent.postMessage({ pluginMessage: { type: "export-png" } }, "*");
       };
-
-      finalPayloadButton.onclick = () => {
+      finalPayloadButton.onclick = async () => {
         // Show spinner while waiting for data
         document.getElementById("spinner").style.display = "block";
 
-        displayTone.textContent = toneTextarea.value;
-        displayFormat.textContent = formatTextarea.value;
-        displayDescription.textContent = descriptionTextarea.value;
+        // Retrieve the values from the input fields
+        const tone = toneInput.value;
+        const format = formatTextarea.value;
+        const description = descriptionTextarea.value;
+
+        // Update the preview with the provided values
+        displayTone.textContent = tone;
+        displayFormat.textContent = format;
+        displayDescription.textContent = description;
         displayLogic.textContent =
           logicSelect.options[logicSelect.selectedIndex].text;
         displayPoints.textContent = technicalNotesTextarea.value;
         finalImageDisplay.src = imageDisplay.src;
         finalPayloadPreview.style.display = "block";
 
-        // Hide spinner after data is displayed (simulate async operation)
-        setTimeout(() => {
-          document.getElementById("spinner").style.display = "none";
-        }, 1000); // Adjust timeout as needed
-      };
+        // Call the analyze_image function with provided parameters
+        const msg = {
+          pluginMessage: {
+            type: "call-function",
+            functionName: "analyze_image",
+            parameters: {
+              tone,
+              format,
+              description,
+            },
+          },
+        };
+        parent.postMessage(msg, "*");
 
-      // Function to toggle between span and textarea
-      function toggleEditField(element) {
-        const span = element.previousElementSibling;
-        const value = span.textContent;
-        const textarea = document.createElement("textarea");
-        textarea.value = value;
-        span.parentNode.replaceChild(textarea, span);
-        textarea.focus();
+        // Call the API and display the response
+        const apiUrl = "http://localhost:5000/analyze_image?image=finance.png";
+        try {
+          const response = await fetch(apiUrl, { method: "GET" });
+          const data = await response.json();
+          apiResponseContainer.innerHTML = `<p><strong>API Response:</strong></p><pre>${data.message}</pre>`;
+        } catch (error) {
+          console.error("API call failed:", error);
+          apiResponseContainer.textContent = "Failed to call API";
+        }
 
-        const saveButton = document.createElement("button");
-        saveButton.textContent = "Save";
-        saveButton.classList.add("save-button");
-
-        saveButton.addEventListener("click", () => {
-          const newValue = textarea.value;
-          span.textContent = newValue;
-          textarea.parentNode.replaceChild(span, textarea);
-          saveButton.parentNode.removeChild(saveButton);
-          element.style.display = "inline-block"; // Show the edit button after saving
-        });
-
-        element.parentNode.appendChild(saveButton); // Appending save button to the parent <p> element
-        element.style.display = "none"; // Hide the edit button while editing
-      }
-
-      // Add click event listeners to edit icons
-      document.getElementById("editTone").addEventListener("click", () => {
-        toggleEditField(document.getElementById("editTone"));
-      });
-      document.getElementById("editFormat").addEventListener("click", () => {
-        toggleEditField(document.getElementById("editFormat"));
-      });
-      document
-        .getElementById("editDescription")
-        .addEventListener("click", () => {
-          toggleEditField(document.getElementById("editDescription"));
-        });
-
-      saveUserStoryButton.onclick = () => {
         // Gather data from the User Story section
         const userStoryData = {
           description: displayTone.textContent,
@@ -308,45 +298,34 @@
 
         // Convert the data to HTML format
         const html = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>User Story</title>
-        <meta charset="UTF-8">
-        <style>
-            /* Add your CSS styles here */
-            body {
-                font-family: Arial, sans-serif;
-            }
-            h2, h3, p {
-                margin: 0;
-                padding: 0;
-            }
-            img {
-                max-width: 100%;
-                height: auto;
-            }
-        </style>
-    </head>
-    <body>
-        <h2>User Story</h2>
-        <h3>Description:</h3>
-        <p>${userStoryData.description}</p>
-        <h3>Acceptance Criteria:</h3>
-        <p>${userStoryData.acceptanceCriteria}</p>
-        <h3>Technical Notes:</h3>
-        <p>${userStoryData.technicalNotes}</p>
-        <h3>Points:</h3>
-        <p>${userStoryData.points}</p>
-        <img src="${finalImageDisplay.src}" />
-    </body>
-    </html>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Story</title>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; }
+        h2, h3, p { margin: 0; padding: 0; }
+        img { max-width: 100%; height: auto; }
+    </style>
+</head>
+<body>
+    <h2>User Story</h2>
+    <h3>Description:</h3>
+    <p>${userStoryData.description}</p>
+    <h3>Acceptance Criteria:</h3>
+    <p>${userStoryData.acceptanceCriteria}</p>
+    <h3>Technical Notes:</h3>
+    <p>${userStoryData.technicalNotes}</p>
+    <h3>Points:</h3>
+    <p>${userStoryData.points}</p>
+    <img src="${finalImageDisplay.src}" />
+</body>
+</html>
     `;
 
         // Convert HTML to Blob
         const blob = new Blob([html], { type: "application/msword" });
-
-        // Create a URL for the Blob
         const url = URL.createObjectURL(blob);
 
         // Create a link element and simulate a click to download the Word document
@@ -359,8 +338,12 @@
         // Clean up
         URL.revokeObjectURL(url);
         document.body.removeChild(link);
-      };
 
+        // Hide spinner after all operations are complete
+        setTimeout(() => {
+          document.getElementById("spinner").style.display = "none";
+        }, 1000); // Adjust timeout as needed
+      };
       onmessage = (event) => {
         const msg = event.data.pluginMessage;
         if (msg.type === "exported-png" && msg.bytes) {
