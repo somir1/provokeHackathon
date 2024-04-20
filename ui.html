@@ -89,18 +89,21 @@
     }
 
     .spinner {
+      /* Positioning */
+      position: absolute;
+      top: 1250px;
+      left: 40%;
+      transform: translateX(-50%, -50%);
+      z-index: 9999;
+
+      /* Styling */
       border: 4px solid rgba(0, 0, 0, 0.1);
       border-top: 4px solid #3498db;
       border-radius: 50%;
       width: 30px;
       height: 30px;
       animation: spin 1s linear infinite;
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 9999;
-      display: none;
+      display: none; /* Initially hidden */
     }
 
     @keyframes spin {
@@ -113,8 +116,6 @@
     }
   </style>
   <body>
-    <!-- Spinner element -->
-    <div class="spinner" id="spinner"></div>
     <!-- Rest of your HTML content -->
     <h3>Create a User Story</h3>
     <p>
@@ -164,6 +165,8 @@
       ></textarea>
     </p>
     <button id="finalPayload">Generate User Story</button>
+
+    <div class="spinner" id="spinner"></div>
     <div
       id="finalPayloadPreview"
       style="
@@ -178,29 +181,22 @@
         <strong>Description:</strong>
       </p>
       <p>
-        <span id="displayTone">Default Business Description</span>
+        <span id="displayDescription">Default Business Description</span>
         <span class="edit-icon" id="editTone">&#9998;</span>
       </p>
       <p>
         <strong>Acceptance Criteria:</strong>
       </p>
       <p>
-        <span id="displayFormat">Default Acceptance Criteria</span>
+        <span id="displayAcceptanceCrit">Default Acceptance Criteria</span>
         <span class="edit-icon" id="editFormat">&#9998;</span>
       </p>
       <p>
         <strong>Technical Notes:</strong>
       </p>
       <p>
-        <span id="displayDescription">Default Technical Notes</span>
+        <span id="displayTechNotes">Default Technical Notes</span>
         <span class="edit-icon" id="editDescription">&#9998;</span>
-      </p>
-      <p>
-        <strong>Logic:</strong>
-      </p>
-      <p>
-        <span id="displayLogic">Default Format</span>
-        <span class="edit-icon" id="editLogic">&#9998;</span>
       </p>
       <p>
         <strong>Points:</strong>
@@ -230,9 +226,11 @@
       const finalPayloadPreview = document.getElementById(
         "finalPayloadPreview"
       );
-      const displayTone = document.getElementById("displayTone");
-      const displayFormat = document.getElementById("displayFormat");
       const displayDescription = document.getElementById("displayDescription");
+      const displayAcceptanceCrit = document.getElementById(
+        "displayAcceptanceCrit"
+      );
+      const displayTechNotes = document.getElementById("displayTechNotes");
       const displayPoints = document.getElementById("displayPoints");
       const displayLogic = document.getElementById("displayLogic"); // Ensure this ID is set correctly in your HTML
       const saveUserStoryButton = document.getElementById("saveUserStory");
@@ -244,24 +242,30 @@
       previewButton.onclick = () => {
         parent.postMessage({ pluginMessage: { type: "export-png" } }, "*");
       };
+
       finalPayloadButton.onclick = async () => {
         // Show spinner while waiting for data
         document.getElementById("spinner").style.display = "block";
 
         // Retrieve the values from the input fields
-        const tone = toneInput.value;
+        /*const tone = toneInput.value;
         const format = formatTextarea.value;
-        const description = descriptionTextarea.value;
+        const description = descriptionTextarea.value;*/
 
         // Update the preview with the provided values
-        displayTone.textContent = tone;
-        displayFormat.textContent = format;
-        displayDescription.textContent = description;
+        displayDescription.textContent = tone;
+        displayAcceptanceCrit.textContent = format;
+        displayTechNotes.textContent = description;
         displayLogic.textContent =
           logicSelect.options[logicSelect.selectedIndex].text;
         displayPoints.textContent = technicalNotesTextarea.value;
         finalImageDisplay.src = imageDisplay.src;
         finalPayloadPreview.style.display = "block";
+
+        // Hide spinner after data is displayed (simulate async operation)
+        setTimeout(() => {
+          document.getElementById("spinner").style.display = "none";
+        }, 1000); // Adjust timeout as needed
 
         // Call the analyze_image function with provided parameters
         const msg = {
@@ -287,42 +291,79 @@
           console.error("API call failed:", error);
           apiResponseContainer.textContent = "Failed to call API";
         }
+      };
 
+      // Function to toggle between span and textarea
+      function toggleEditField(element) {
+        const span = element.previousElementSibling;
+        const value = span.textContent;
+        const textarea = document.createElement("textarea");
+        textarea.value = value;
+        span.parentNode.replaceChild(textarea, span);
+        textarea.focus();
+        const saveButton = document.createElement("button");
+        saveButton.textContent = "Save";
+        saveButton.classList.add("save-button");
+        saveButton.addEventListener("click", () => {
+          const newValue = textarea.value;
+          span.textContent = newValue;
+          textarea.parentNode.replaceChild(span, textarea);
+          saveButton.parentNode.removeChild(saveButton);
+          element.style.display = "inline-block"; // Show the edit button after saving
+        });
+        element.parentNode.appendChild(saveButton); // Appending save button to the parent <p> element
+        element.style.display = "none"; // Hide the edit button while editing
+      }
+      // Add click event listeners to edit icons
+      document.getElementById("editTone").addEventListener("click", () => {
+        toggleEditField(document.getElementById("editTone"));
+      });
+      document.getElementById("editFormat").addEventListener("click", () => {
+        toggleEditField(document.getElementById("editFormat"));
+      });
+      document
+        .getElementById("editDescription")
+        .addEventListener("click", () => {
+          toggleEditField(document.getElementById("editDescription"));
+        });
+
+      saveUserStoryButton.onclick = () => {
         // Gather data from the User Story section
+
         const userStoryData = {
-          description: displayTone.textContent,
-          acceptanceCriteria: displayFormat.textContent,
-          technicalNotes: displayDescription.textContent,
+          description: displayDescription.textContent,
+          acceptanceCriteria: displayAcceptanceCrit.textContent,
+          technicalNotes: displayTechNotes.textContent,
           points: displayPoints.textContent, // Assuming you have an element with id="displayPoints"
         };
 
         // Convert the data to HTML format
         const html = `
-<!DOCTYPE html>
-<html>
-<head>
-    <title>User Story</title>
-    <meta charset="UTF-8">
-    <style>
-        body { font-family: Arial, sans-serif; }
-        h2, h3, p { margin: 0; padding: 0; }
-        img { max-width: 100%; height: auto; }
-    </style>
-</head>
-<body>
-    <h2>User Story</h2>
-    <h3>Description:</h3>
-    <p>${userStoryData.description}</p>
-    <h3>Acceptance Criteria:</h3>
-    <p>${userStoryData.acceptanceCriteria}</p>
-    <h3>Technical Notes:</h3>
-    <p>${userStoryData.technicalNotes}</p>
-    <h3>Points:</h3>
-    <p>${userStoryData.points}</p>
-    <img src="${finalImageDisplay.src}" />
-</body>
-</html>
-    `;
+      <!DOCTYPE html>
+      <html>
+      <head>
+          <title>User Story</title>
+          <meta charset="UTF-8">
+          <style>
+              body { font-family: Arial, sans-serif; }
+              h2, h3, p { margin: 0; padding: 0; }
+              img { max-width: 100%; height: auto; }
+          </style>
+      </head>
+      <body>
+          <h2>User Story</h2>
+          <h3>Description:</h3>
+          <p>${userStoryData.description}</p>
+          <h3>Acceptance Criteria:</h3>
+          <p>${userStoryData.acceptanceCriteria}</p>
+          <h3>Technical Notes:</h3>
+          <p>${userStoryData.technicalNotes}</p>
+          <h3>Points:</h3>
+          <p>${userStoryData.points}</p>
+          <img src="${finalImageDisplay.src}" />
+      </body>
+      </html>
+          `;
 
         // Convert HTML to Blob
         const blob = new Blob([html], { type: "application/msword" });
@@ -344,6 +385,7 @@
           document.getElementById("spinner").style.display = "none";
         }, 1000); // Adjust timeout as needed
       };
+
       onmessage = (event) => {
         const msg = event.data.pluginMessage;
         if (msg.type === "exported-png" && msg.bytes) {
@@ -354,8 +396,45 @@
           const base64 = btoa(binaryString);
           imageDisplay.src = `data:image/png;base64,${base64}`;
           previewContainer.style.display = "block";
+
+          // Save image to repository
+          saveImageToRepository(base64);
         }
       };
+
+      function saveImageToRepository(base64) {
+        // Get the current URL
+        const currentUrl = window.location.href;
+
+        // Extract the directory path from the URL
+        const directoryPath = currentUrl.substring(
+          0,
+          currentUrl.lastIndexOf("/") + 1
+        );
+
+        // Construct the path to the images folder
+        const imagePath = `${directoryPath}images/preview_image.png`;
+
+        // Convert base64 data to blob
+        const byteCharacters = atob(base64);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: "image/png" });
+
+        // Create a file object
+        const file = new File([blob], imagePath, { type: "image/png" });
+
+        // Trigger a download of the created file using a link
+        const linkImg = document.createElement("a");
+        linkImg.href = URL.createObjectURL(file);
+        linkImg.download = imagePath;
+        document.body.appendChild(linkImg);
+        linkImg.click();
+        document.body.removeChild(linkImg);
+      }
     </script>
   </body>
 </html>

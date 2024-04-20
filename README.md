@@ -38,3 +38,12 @@ We recommend writing TypeScript code using Visual Studio code:
     you reopen Visual Studio Code.
 
 That's it! Visual Studio Code will regenerate the JavaScript file every time you save.
+
+Python:
+1. Install Python 3.12
+2. Install Flask
+  py -3 -m venv .venv
+  .venv\Scripts\activate
+  pip install Flask
+3. Install anthropic
+  pip install anthropic
