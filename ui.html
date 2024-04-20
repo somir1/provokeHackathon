@@ -119,6 +119,14 @@
         ></textarea>
       </p>
     </div>
+    <p>
+      Technical Notes:
+      <textarea
+        id="technicalNotes"
+        placeholder="Add you Swagger Ui link here."
+        style="width: 90%; height: 100px"
+      ></textarea>
+    </p>
     <button id="finalPayload">Generate User Story</button>
     <div
       id="finalPayloadPreview"
@@ -134,21 +142,21 @@
         <strong>Description:</strong>
       </p>
       <p>
-        <span id="displayTone">Default Tone</span>
+        <span id="displayTone">Default Business Description</span>
         <span class="edit-icon" id="editTone">&#9998;</span>
       </p>
       <p>
         <strong>Acceptance Criteria:</strong>
       </p>
       <p>
-        <span id="displayFormat">Default Format</span>
+        <span id="displayFormat">Default Acceptance Criteria</span>
         <span class="edit-icon" id="editFormat">&#9998;</span>
       </p>
       <p>
         <strong>Technical Notes:</strong>
       </p>
       <p>
-        <span id="displayDescription">Default Description</span>
+        <span id="displayDescription">Default Technical Notes</span>
         <span class="edit-icon" id="editDescription">&#9998;</span>
       </p>
       <p>
@@ -169,6 +177,7 @@
       const previewButton = document.getElementById("preview");
       const toneTextarea = document.getElementById("tone");
       const formatTextarea = document.getElementById("format");
+      const technicalNotesTextarea = document.getElementById("technicalNotes");
       const descriptionTextarea = document.getElementById("description");
       const finalPayloadButton = document.getElementById("finalPayload");
       const imageDisplay = document.getElementById("imageDisplay");
@@ -179,6 +188,7 @@
       const displayTone = document.getElementById("displayTone");
       const displayFormat = document.getElementById("displayFormat");
       const displayDescription = document.getElementById("displayDescription");
+      const displayPoints = document.getElementById("displayPoints");
       const toneInput = document.getElementById("tone");
       const formatInput = document.getElementById("format");
       const descriptionInput = document.getElementById("description");
@@ -195,6 +205,7 @@
         displayTone.textContent = toneInput.value;
         displayFormat.textContent = formatInput.value;
         displayDescription.textContent = descriptionInput.value;
+        displayPoints.textContent = technicalNotesTextarea.value;
         finalImageDisplay.src = imageDisplay.src;
         finalPayloadPreview.style.display = "block";
       };
@@ -237,23 +248,6 @@
           toggleEditField(document.getElementById("editDescription"));
         });
 
-      // Function to generate a downloadable text file
-      function downloadTextFile(data, filename) {
-        // Create a blob containing the data
-        const blob = new Blob([data], { type: "text/plain" });
-
-        // Create a temporary anchor element
-        const anchor = document.createElement("a");
-        anchor.href = window.URL.createObjectURL(blob);
-        anchor.download = filename;
-
-        // Programmatically click the anchor to trigger the download
-        anchor.click();
-
-        // Cleanup
-        window.URL.revokeObjectURL(anchor.href);
-      }
-
       saveUserStoryButton.onclick = () => {
         // Gather data from the User Story section
         const userStoryData = {
@@ -263,24 +257,59 @@
           points: displayPoints.textContent, // Assuming you have an element with id="displayPoints"
         };
 
-        // Convert the data to Markdown format
-        const markdown = `
-### User Story
+        // Convert the data to HTML format
+        const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>User Story</title>
+        <meta charset="UTF-8">
+        <style>
+            /* Add your CSS styles here */
+            body {
+                font-family: Arial, sans-serif;
+            }
+            h2, h3, p {
+                margin: 0;
+                padding: 0;
+            }
+            img {
+                max-width: 100%;
+                height: auto;
+            }
+        </style>
+    </head>
+    <body>
+        <h2>User Story</h2>
+        <h3>Description:</h3>
+        <p>${userStoryData.description}</p>
+        <h3>Acceptance Criteria:</h3>
+        <p>${userStoryData.acceptanceCriteria}</p>
+        <h3>Technical Notes:</h3>
+        <p>${userStoryData.technicalNotes}</p>
+        <h3>Points:</h3>
+        <p>${userStoryData.points}</p>
+        <img src="${finalImageDisplay.src}" />
+    </body>
+    </html>
+    `;
 
-**Description:** ${userStoryData.description}
-**Acceptance Criteria:** ${userStoryData.acceptanceCriteria}
-**Technical Notes:** ${userStoryData.technicalNotes}
-**Points:** ${userStoryData.points}
-`;
+        // Convert HTML to Blob
+        const blob = new Blob([html], { type: "application/msword" });
 
-        // Convert the data to JSON format
-        const json = JSON.stringify(userStoryData, null, 2);
+        // Create a URL for the Blob
+        const url = URL.createObjectURL(blob);
 
-        // Choose a filename for the text file
-        const filename = "user_story.txt";
+        // Create a link element and simulate a click to download the Word document
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "user_story.doc";
+        document.body.appendChild(link);
+        link.click();
 
-        // Call the function to generate the downloadable text file
-        downloadTextFile(markdown, filename);
+        // Clean up
+        URL.revokeObjectURL(url);
+        document.body.removeChild(link);
       };
 
       onmessage = (event) => {
