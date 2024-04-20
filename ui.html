@@ -19,7 +19,8 @@
     }
     input,
     button,
-    textarea {
+    textarea,
+    select {
       font-family: "Roboto", sans-serif;
       padding: 12px 15px;
       margin-top: 8px;
@@ -31,10 +32,12 @@
     }
 
     input:focus,
-    textarea:focus {
+    textarea:focus,
+    select:focus {
       border-color: #0056b3;
       box-shadow: 0 0 8px rgba(0, 86, 179, 0.2);
     }
+
     button {
       background-image: linear-gradient(45deg, #6ab04c, #26de81);
       color: white;
@@ -103,7 +106,13 @@
         style="width: 90%; height: 100px"
       ></textarea>
     </p>
-
+    <p>
+      Logic:
+      <select id="logic" style="width: 90%">
+        <option value="business">Business</option>
+        <option value="technical">Technical</option>
+      </select>
+    </p>
     <button id="preview">Preview Image</button>
     <div id="previewContainer" style="margin-top: 20px; display: none">
       <img
@@ -160,6 +169,13 @@
         <span class="edit-icon" id="editDescription">&#9998;</span>
       </p>
       <p>
+        <strong>Logic:</strong>
+      </p>
+      <p>
+        <span id="displayLogic">Default Format</span>
+        <span class="edit-icon" id="editLogic">&#9998;</span>
+      </p>
+      <p>
         <strong>Points:</strong>
       </p>
       <p>
@@ -177,6 +193,7 @@
       const previewButton = document.getElementById("preview");
       const toneTextarea = document.getElementById("tone");
       const formatTextarea = document.getElementById("format");
+      const logicSelect = document.getElementById("logic"); // Corrected ID reference
       const technicalNotesTextarea = document.getElementById("technicalNotes");
       const descriptionTextarea = document.getElementById("description");
       const finalPayloadButton = document.getElementById("finalPayload");
@@ -189,9 +206,7 @@
       const displayFormat = document.getElementById("displayFormat");
       const displayDescription = document.getElementById("displayDescription");
       const displayPoints = document.getElementById("displayPoints");
-      const toneInput = document.getElementById("tone");
-      const formatInput = document.getElementById("format");
-      const descriptionInput = document.getElementById("description");
+      const displayLogic = document.getElementById("displayLogic"); // Ensure this ID is set correctly in your HTML
       const saveUserStoryButton = document.getElementById("saveUserStory");
 
       previewButton.onclick = () => {
@@ -199,12 +214,11 @@
       };
 
       finalPayloadButton.onclick = () => {
-        toneTextarea.disabled = true;
-        formatTextarea.disabled = true;
-
-        displayTone.textContent = toneInput.value;
-        displayFormat.textContent = formatInput.value;
-        displayDescription.textContent = descriptionInput.value;
+        displayTone.textContent = toneTextarea.value;
+        displayFormat.textContent = formatTextarea.value;
+        displayDescription.textContent = descriptionTextarea.value;
+        displayLogic.textContent =
+          logicSelect.options[logicSelect.selectedIndex].text;
         displayPoints.textContent = technicalNotesTextarea.value;
         finalImageDisplay.src = imageDisplay.src;
         finalPayloadPreview.style.display = "block";
