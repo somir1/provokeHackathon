@@ -326,6 +326,9 @@
         .addEventListener("click", () => {
           toggleEditField(document.getElementById("editDescription"));
         });
+      document.getElementById("editPoints").addEventListener("click", () => {
+        toggleEditField(document.getElementById("editPoints"));
+      });
 
       saveUserStoryButton.onclick = () => {
         // Gather data from the User Story section
